@@ -1,6 +1,5 @@
 streamlit
-glob
+opencv-python
 numpy
 imutils
-opencv
 playsound
