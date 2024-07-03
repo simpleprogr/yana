@@ -2,5 +2,4 @@ streamlit
 opencv-python
 numpy
 imutils
-playsound
-wheel
+playsound==1.2.2
