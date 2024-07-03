@@ -1,2 +1,4 @@
+glob
 numpy
+imutils
 opencv-python-headless
