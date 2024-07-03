@@ -3,7 +3,7 @@ import glob
 import cv2
 import numpy as np
 import imutils
-from playsound import playsound
+import pygame
 import os
 
 _capture, image_test = False, None
@@ -16,30 +16,39 @@ if 'camera_active' not in st.session_state:
 if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
 
+pygame.mixer.init()
+
 def get_currency_color(hue_value):
     sound_folder = os.path.join(os.path.dirname(__file__), 'sound')
     if hue_value < 0:
         return "MATA UANG"
     elif hue_value < 10:
-        playsound(os.path.join(sound_folder, '5000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '5000.mp3'))
+        pygame.mixer.music.play()
         return "Nominal Uang 5000"
     elif hue_value < 30:
-        playsound(os.path.join(sound_folder, '1000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '1000.mp3'))
+        pygame.mixer.music.play()
         return "Nominal Uang 1000"
     elif hue_value < 75:
-        playsound(os.path.join(sound_folder, '20000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '20000.mp3'))
+        pygame.mixer.music.play()
         return "Nominal Uang 20.000"
     elif hue_value < 102:
-        playsound(os.path.join(sound_folder, '2000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '2000.mp3'))
+        pygame.mixer.music.play()
         return "Nominal Uang 2000"
     elif hue_value < 105:
-        playsound(os.path.join(sound_folder, '50000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '50000.mp3'))
+        pygame.mixer.music.play()
         return "Nominal Uang 50.000"
     elif hue_value < 160:
-        playsound(os.path.join(sound_folder, '10000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '10000.mp3'))
+        pygame.mixer.music.play()
         return "Nominal Uang 10.000"
     elif hue_value < 177:
-        playsound(os.path.join(sound_folder, '100000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '100000.mp3'))
+        pygame.mixer.music.play()
         return "Nominal Uang 100.000"
     else:
         return "MATA UANG"
@@ -100,19 +109,20 @@ def detect(img):
 def playsound_mapping(nominal):
     sound_folder = os.path.join(os.path.dirname(__file__), 'sound')
     if 0 <= nominal <= 9:
-        playsound(os.path.join(sound_folder, '1000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '1000.mp3'))
     elif 8 <= nominal <= 21:
-        playsound(os.path.join(sound_folder, '2000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '2000.mp3'))
     elif 20 <= nominal <= 34:
-        playsound(os.path.join(sound_folder, '5000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '5000.mp3'))
     elif 33 <= nominal <= 48:
-        playsound(os.path.join(sound_folder, '10000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '10000.mp3'))
     elif 47 <= nominal <= 57:
-        playsound(os.path.join(sound_folder, '20000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '20000.mp3'))
     elif 56 <= nominal <= 69:
-        playsound(os.path.join(sound_folder, '50000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '50000.mp3'))
     elif 68 <= nominal <= 84:
-        playsound(os.path.join(sound_folder, '100000.mp3'))
+        pygame.mixer.music.load(os.path.join(sound_folder, '100000.mp3'))
+    pygame.mixer.music.play()
 
 def main():
     st.set_page_config(page_title="Deteksi Nominal Mata Uang Menggunakan Template Matching", layout="centered")
