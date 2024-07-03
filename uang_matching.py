@@ -203,7 +203,7 @@ def main():
 
     if not st.session_state.camera_active:
         cap.release()
-        cv2.destroyAllWindows()
+        #cv2.destroyAllWindows()
     
     col1, col2, col3 = st.columns([1, 4, 1])
 
