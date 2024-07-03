@@ -3,7 +3,7 @@ import glob
 import cv2
 import numpy as np
 import imutils
-import pygame
+from playsound import playsound
 import os
 
 _capture, image_test = False, None
@@ -16,39 +16,30 @@ if 'camera_active' not in st.session_state:
 if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
 
-pygame.mixer.init()
-
 def get_currency_color(hue_value):
     sound_folder = os.path.join(os.path.dirname(__file__), 'sound')
     if hue_value < 0:
         return "MATA UANG"
     elif hue_value < 10:
-        pygame.mixer.music.load(os.path.join(sound_folder, '5000.mp3'))
-        pygame.mixer.music.play()
+        playsound(os.path.join(sound_folder, '5000.mp3'))
         return "Nominal Uang 5000"
     elif hue_value < 30:
-        pygame.mixer.music.load(os.path.join(sound_folder, '1000.mp3'))
-        pygame.mixer.music.play()
+        playsound(os.path.join(sound_folder, '1000.mp3'))
         return "Nominal Uang 1000"
     elif hue_value < 75:
-        pygame.mixer.music.load(os.path.join(sound_folder, '20000.mp3'))
-        pygame.mixer.music.play()
+        playsound(os.path.join(sound_folder, '20000.mp3'))
         return "Nominal Uang 20.000"
     elif hue_value < 102:
-        pygame.mixer.music.load(os.path.join(sound_folder, '2000.mp3'))
-        pygame.mixer.music.play()
+        playsound(os.path.join(sound_folder, '2000.mp3'))
         return "Nominal Uang 2000"
     elif hue_value < 105:
-        pygame.mixer.music.load(os.path.join(sound_folder, '50000.mp3'))
-        pygame.mixer.music.play()
+        playsound(os.path.join(sound_folder, '50000.mp3'))
         return "Nominal Uang 50.000"
     elif hue_value < 160:
-        pygame.mixer.music.load(os.path.join(sound_folder, '10000.mp3'))
-        pygame.mixer.music.play()
+        playsound(os.path.join(sound_folder, '10000.mp3'))
         return "Nominal Uang 10.000"
     elif hue_value < 177:
-        pygame.mixer.music.load(os.path.join(sound_folder, '100000.mp3'))
-        pygame.mixer.music.play()
+        playsound(os.path.join(sound_folder, '100000.mp3'))
         return "Nominal Uang 100.000"
     else:
         return "MATA UANG"
@@ -109,20 +100,19 @@ def detect(img):
 def playsound_mapping(nominal):
     sound_folder = os.path.join(os.path.dirname(__file__), 'sound')
     if 0 <= nominal <= 9:
-        pygame.mixer.music.load(os.path.join(sound_folder, '1000.mp3'))
+        playsound(os.path.join(sound_folder, '1000.mp3'))
     elif 8 <= nominal <= 21:
-        pygame.mixer.music.load(os.path.join(sound_folder, '2000.mp3'))
+        playsound(os.path.join(sound_folder, '2000.mp3'))
     elif 20 <= nominal <= 34:
-        pygame.mixer.music.load(os.path.join(sound_folder, '5000.mp3'))
+        playsound(os.path.join(sound_folder, '5000.mp3'))
     elif 33 <= nominal <= 48:
-        pygame.mixer.music.load(os.path.join(sound_folder, '10000.mp3'))
+        playsound(os.path.join(sound_folder, '10000.mp3'))
     elif 47 <= nominal <= 57:
-        pygame.mixer.music.load(os.path.join(sound_folder, '20000.mp3'))
+        playsound(os.path.join(sound_folder, '20000.mp3'))
     elif 56 <= nominal <= 69:
-        pygame.mixer.music.load(os.path.join(sound_folder, '50000.mp3'))
+        playsound(os.path.join(sound_folder, '50000.mp3'))
     elif 68 <= nominal <= 84:
-        pygame.mixer.music.load(os.path.join(sound_folder, '100000.mp3'))
-    pygame.mixer.music.play()
+        playsound(os.path.join(sound_folder, '100000.mp3'))
 
 def main():
     st.set_page_config(page_title="Deteksi Nominal Mata Uang Menggunakan Template Matching", layout="centered")
@@ -175,8 +165,8 @@ def main():
         cap = cv2.VideoCapture(0)
 
     # Set resolution
-    #cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1100)
-    #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1000)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 400)
 
     while st.session_state.camera_active:
         ret, frame = cap.read()
@@ -213,7 +203,7 @@ def main():
 
     if not st.session_state.camera_active:
         cap.release()
-        #cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
     
     col1, col2, col3 = st.columns([1, 4, 1])
 
