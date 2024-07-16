@@ -1,10 +1,10 @@
 import streamlit as st
-import glob
 import cv2
 import numpy as np
 import imutils
 import os
-from streamlit_image_capture import image_capture
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoProcessorBase
+import av
 
 _capture, image_test = False, None
 template_data = []
@@ -64,7 +64,7 @@ def detect(img):
         for scale in np.linspace(0.2, 1.0, 20)[::-1]: 
             resized = imutils.resize(img_canny, width=int(img_canny.shape[1] * scale))
             r = img_canny.shape[1] / float(resized.shape[1]) 
-            if resized.shape[0] < tmp_height or resized.shape[1] < tmp_width:
+            if resized.shape[0] < tmp_height atau resized.shape[1] < tmp_width:
                 break
 
             result = cv2.matchTemplate(resized, template['glob'], cv2.TM_CCOEFF_NORMED)
@@ -101,6 +101,16 @@ def playsound_mapping(nominal):
         return 'sound/100000.mp3'
     return None
 
+class VideoProcessor(VideoProcessorBase):
+    def __init__(self):
+        self.template_data = []
+        uang_matching()
+
+    def recv(self, frame):
+        img = frame.to_ndarray(format="bgr24")
+        detect(img)
+        return av.VideoFrame.from_ndarray(img, format="bgr24")
+
 def main():
     st.set_page_config(page_title="Deteksi Nominal Mata Uang Menggunakan Template Matching", layout="centered")
 
@@ -132,18 +142,27 @@ def main():
 
     st.write("---")
 
-    # Capture image from camera
-    img = image_capture(label="Capture an image", key="camera")
+    webrtc_ctx = webrtc_streamer(
+        key="example", 
+        mode=WebRtcMode.SENDRECV, 
+        video_processor_factory=VideoProcessor, 
+        media_stream_constraints={"video": True, "audio": False},
+        async_processing=True,
+    )
 
-    if img is not None:
-        image_test = cv2.imdecode(np.frombuffer(img, np.uint8), cv2.IMREAD_COLOR)
-        detect(image_test)
+    if st.button("Capture"):
+        if webrtc_ctx.state.playing:
+            webrtc_ctx.video_processor.save_image()
         
-        st.image(image_test, channels="BGR")
-        
-        st.write(hasil)
-        if audio_file:
-            st.audio(audio_file, autoplay=True)
+        if webrtc_ctx.video_processor.frame is not None:
+            image_test = webrtc_ctx.video_processor.frame
+            detect(image_test)
+            
+            st.image(image_test, channels="BGR")
+            
+            st.write(hasil)
+            if audio_file:
+                st.audio(audio_file, autoplay=True)
 
     st.markdown("""
         <style>
