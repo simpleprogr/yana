@@ -149,8 +149,8 @@ def main():
     picture = st.camera_input("Ambil gambar")
     
     if picture is not None:
-        # Convert the image to OpenCV format (BGR)
-        frame_bgr = cv2.cvtColor(np.array(picture), cv2.COLOR_RGB2BGR)
+        # Convert the image to BGR using slicing method
+        frame_bgr = np.array(picture)[:, :, ::-1]
 
         # Convert to HSV for color detection
         hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
