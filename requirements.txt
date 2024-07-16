@@ -3,5 +3,5 @@ opencv-python-headless
 numpy
 imutils
 playsound
-streamlit_webrtc==0.20.0
+streamlit_webrtc
 tensorflow
