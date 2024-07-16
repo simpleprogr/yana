@@ -145,38 +145,35 @@ def main():
                     video_processor_factory=VideoProcessor, 
                     media_stream_constraints={"video": True, "audio": False})
 
-    # Ambil gambar dari kamera
-    picture = st.camera_input("Ambil gambar")
+   # Capture image from camera
+    picture = st.camera_input("Capture an image")
     if picture is not None:
-        # Ubah gambar PIL ke array numpy (format RGB)
-        frame = np.array(picture)
+        # Convert the image to OpenCV format (BGR)
+        frame = cv2.cvtColor(np.array(picture), cv2.COLOR_RGB2BGR)
         
-        # Konversi frame ke format BGR untuk pemrosesan OpenCV
-        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        
-        # Konversi frame ke format HSV untuk deteksi warna
-        hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
+        # Convert to HSV for color detection
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        # Dapatkan dimensi dari frame
-        height, width, _ = frame_bgr.shape
+        # Get dimensions of the frame
+        height, width, _ = frame.shape
 
-        # Hitung koordinat tengah frame
+        # Calculate center coordinates of the frame
         cx = int(width / 2)
         cy = int(height / 2)
 
-        # Dapatkan nilai hue dari piksel tengah
+        # Get the HSV value of the center pixel
         pixel_center = hsv_frame[cy, cx]
         hue_value = pixel_center[0]
 
-        # Tentukan warna mata uang berdasarkan nilai hue
+        # Determine currency color based on hue value
         color = get_currency_color(hue_value)
 
-        # Gambar lingkaran di tengah frame
-        cv2.circle(frame_bgr, (cx, cy), 5, (25, 25, 25), 3)
+        # Draw a circle at the center of the frame
+        cv2.circle(frame, (cx, cy), 5, (255, 255, 255), 2)
 
-        # Tampilkan frame yang sudah diproses dan warna yang terdeteksi
-        st.image(frame_bgr, channels="BGR")
-        st.write(f"Warna Mata Uang Terdeteksi: {color}")
+        # Display the processed frame and detected color
+        st.image(frame, channels="BGR")
+        st.write(f"Detected Currency Color: {color}")
 
     
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
