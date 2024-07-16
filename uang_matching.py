@@ -3,8 +3,9 @@ import glob
 import cv2
 import numpy as np
 import imutils
-from playsound import playsound
-import os
+from io import BytesIO
+from PIL import Image
+import base64
 
 _capture, image_test = False, None
 template_data = []
@@ -17,39 +18,29 @@ if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
 
 def get_currency_color(hue_value):
-    sound_folder = os.path.join(os.path.dirname(__file__), 'sound')
     if hue_value < 0:
         return "MATA UANG"
     elif hue_value < 10:
-        playsound(os.path.join(sound_folder, '5000.mp3'))
         return "Nominal Uang 5000"
     elif hue_value < 30:
-        playsound(os.path.join(sound_folder, '1000.mp3'))
         return "Nominal Uang 1000"
     elif hue_value < 75:
-        playsound(os.path.join(sound_folder, '20000.mp3'))
         return "Nominal Uang 20.000"
     elif hue_value < 102:
-        playsound(os.path.join(sound_folder, '2000.mp3'))
         return "Nominal Uang 2000"
     elif hue_value < 105:
-        playsound(os.path.join(sound_folder, '50000.mp3'))
-        return "Nominal Uang 50.000"
+        return "Nominal Uang 50000"
     elif hue_value < 160:
-        playsound(os.path.join(sound_folder, '10000.mp3'))
         return "Nominal Uang 10.000"
     elif hue_value < 177:
-        playsound(os.path.join(sound_folder, '100000.mp3'))
         return "Nominal Uang 100.000"
     else:
         return "MATA UANG"
 
-# Function to start camera
 def start_camera():
     st.session_state.camera_active = True
     st.session_state.currency_detected = False
 
-# Function to stop camera
 def stop_camera():
     st.session_state.camera_active = False
 
@@ -93,24 +84,6 @@ def detect(img):
         endX, endY = int((best_match["location"][0] + tmp_width) * best_match["scale"]), int((best_match["location"][1] + tmp_height) * best_match["scale"])
         cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
         hasil = f"Template : {best_match['nominal']} dideteksi"
-        playsound_mapping(int(best_match['nominal']))
-
-def playsound_mapping(nominal):
-    sound_folder = os.path.join(os.path.dirname(__file__), 'sound')
-    if 0 <= nominal <= 9:
-        playsound(os.path.join(sound_folder, '1000.mp3'))
-    elif 8 <= nominal <= 21:
-        playsound(os.path.join(sound_folder, '2000.mp3'))
-    elif 20 <= nominal <= 34:
-        playsound(os.path.join(sound_folder, '5000.mp3'))
-    elif 33 <= nominal <= 48:
-        playsound(os.path.join(sound_folder, '10000.mp3'))
-    elif 47 <= nominal <= 57:
-        playsound(os.path.join(sound_folder, '20000.mp3'))
-    elif 56 <= nominal <= 69:
-        playsound(os.path.join(sound_folder, '50000.mp3'))
-    elif 68 <= nominal <= 84:
-        playsound(os.path.join(sound_folder, '100000.mp3'))
 
 def main():
     st.set_page_config(page_title="Deteksi Nominal Mata Uang Menggunakan Template Matching", layout="centered")
@@ -127,7 +100,7 @@ def main():
         unsafe_allow_html=True
     )
 
-    # Menggunakan CSS dari Streamlit untuk mengatur teks di tengah
+    # Custom CSS for title
     st.markdown("""
         <style>
         .title {
@@ -135,21 +108,16 @@ def main():
             font-size: 24px; /* Ukuran font */
             color: #FF5733; /* Warna teks */
             margin-bottom: 36px;
-            /* background-color: #F0F0F0; Warna latar belakang */
-            /* padding: 10px; Padding di sekitar teks */
-            /* border-radius: 5px; Border radius */
         }
         </style>
         """, unsafe_allow_html=True)
 
-    # Memasukkan teks ke dalam div dengan kelas centered-text
     st.markdown('<div class="title">DETEKSI NOMINAL MATA UANG MENGGUNAKAN TEMPLATE MATCHING</div>', unsafe_allow_html=True)    
     
     uang_matching()
 
     st.write("---")
 
-    # Use columns to center the elements on the page
     col1, col2, col3 = st.columns([1, 4, 1])
 
     with col2:
@@ -159,7 +127,6 @@ def main():
 
         stframe = st.empty()
 
-        # Initialize camera
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
             st.error("Failed to open camera. Please check if the camera is connected and accessible.")
@@ -188,8 +155,6 @@ def main():
                 pixel_center_bgr = frame[cy, cx]
                 b, g, r = int(pixel_center_bgr[0]), int(pixel_center_bgr[1]), int(pixel_center_bgr[2])
 
-                #cv2.rectangle(frame, (cx - 420, 120), (cx + 450, 20), (255, 255, 255), -1)
-                #cv2.putText(frame, color, (cx - 300, 50), 0, 3, (b, g, r), 5)
                 cv2.circle(frame, (cx, cy), 5, (25, 25, 25), 3)
 
                 stframe.image(frame, channels="BGR")
@@ -217,16 +182,13 @@ def main():
             
             st.write(hasil)
 
-    # Menggunakan CSS dari Streamlit untuk mengatur teks di tengah
     st.markdown("""
         <style>
         .foother {
             text-align: center;
-            font-size: 16px; /* Ukuran font */
-            color: #FF5733; /* Warna teks */
-            background-color: #F0F0F0; /* Warna latar belakang */
-            /* padding: 10px; Padding di sekitar teks */
-            /* border-radius: 5px; Border radius */
+            font-size: 16px;
+            color: #FF5733;
+            background-color: #F0F0F0;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -235,17 +197,13 @@ def main():
         <style>
         .foother2 {
             text-align: center;
-            font-size: 16px; /* Ukuran font */
-            color: #FF5733; /* Warna teks */
+            font-size: 16px;
+            color: #FF5733;
             margin-top: 36px;
-            /* background-color: #F0F0F0; Warna latar belakang */
-            /* padding: 10px; Padding di sekitar teks */
-            /* border-radius: 5px; Border radius */
         }
         </style>
         """, unsafe_allow_html=True)
 
-    # Memasukkan teks ke dalam div dengan kelas centered-text
     st.markdown('<div class="foother">Yana Wulandari</div><div class="foother">0701202073</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
