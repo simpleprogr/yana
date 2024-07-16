@@ -4,6 +4,9 @@ import numpy as np
 from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoProcessorBase
 import av
 
+# Enable detailed logging
+st.set_option('client.enableXsrfProtection', False)
+
 class VideoProcessor(VideoProcessorBase):
     def __init__(self):
         self.cx = 0
@@ -11,6 +14,9 @@ class VideoProcessor(VideoProcessorBase):
 
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
+
+        # Log the shape of the frame
+        st.write(f"Frame shape: {img.shape}")
 
         if img is None:
             return frame
@@ -56,7 +62,12 @@ class VideoProcessor(VideoProcessorBase):
 def main():
     st.title("Deteksi Nominal Mata Uang")
 
-    webrtc_ctx = webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, video_processor_factory=VideoProcessor)
+    webrtc_ctx = webrtc_streamer(
+        key="example",
+        mode=WebRtcMode.SENDRECV,
+        video_processor_factory=VideoProcessor,
+        media_stream_constraints={"video": True, "audio": False},
+    )
 
     if webrtc_ctx.state.playing:
         st.write("Webcam is active. Please show the currency note to the camera.")
