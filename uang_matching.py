@@ -84,7 +84,8 @@ def detect(img):
         endX, endY = int((best_match["location"][0] + tmp_width) * best_match["scale"]), int((best_match["location"][1] + tmp_height) * best_match["scale"])
         cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
         hasil = f"Template : {best_match['nominal']} dideteksi"
-        playsound_mapping(int(best_match['nominal']))
+        angka = int(best_match['nominal'])
+        playsound_mapping(angka)
 
 def playsound_mapping(nominal):
     if 0 <= nominal <= 9:
