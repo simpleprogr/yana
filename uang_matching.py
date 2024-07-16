@@ -10,6 +10,7 @@ import av
 _capture, image_test = False, None
 template_data = []
 hasil = ''
+audio_file = ''
 
 # Initialize session state for camera control
 if 'currency_detected' not in st.session_state:
@@ -19,28 +20,21 @@ def get_currency_color(hue_value):
     if hue_value < 0:
         return "MATA UANG"
     elif hue_value < 10:
-        st.audio('sound/5000.mp3')
-        return "Nominal Uang 5000"
+        return "Nominal Uang 5000", 'sound/5000.mp3'
     elif hue_value < 30:
-        st.audio('sound/1000.mp3')
-        return "Nominal Uang 1000"
+        return "Nominal Uang 1000", 'sound/1000.mp3'
     elif hue_value < 75:
-        st.audio('sound/20000.mp3')
-        return "Nominal Uang 20.000"
+        return "Nominal Uang 20000", 'sound/20000.mp3'
     elif hue_value < 102:
-        st.audio('sound/2000.mp3')
-        return "Nominal Uang 2000"
+        return "Nominal Uang 2000", 'sound/2000.mp3'
     elif hue_value < 105:
-        st.audio('sound/50000.mp3')
-        return "Nominal Uang 50.000"
+        return "Nominal Uang 50000", 'sound/50000.mp3'
     elif hue_value < 160:
-        st.audio('sound/10000.mp3')
-        return "Nominal Uang 10.000"
+        return "Nominal Uang 10000", 'sound/10000.mp3'
     elif hue_value < 177:
-        st.audio('sound/100000.mp3')
-        return "Nominal Uang 100.000"
+        return "Nominal Uang 100000", 'sound/100000.mp3'
     else:
-        return "MATA UANG"
+        return "MATA UANG", None
 
 def uang_matching():
     global template_data
@@ -59,7 +53,7 @@ def uang_matching():
         template_data.append({"glob": tmp, "nominal": nominal})
 
 def detect(img):     
-    global template_data, hasil
+    global template_data, hasil, audio_file
     best_match = {"value": 0, "nominal": None, "location": None, "scale": 1}
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img_canny = cv2.Canny(img_gray, 50, 200)
@@ -82,13 +76,13 @@ def detect(img):
         endX, endY = int((best_match["location"][0] + tmp_width) * best_match["scale"]), int((best_match["location"][1] + tmp_height) * best_match["scale"])
         cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
         hasil = f"Template : {best_match['nominal']} dideteksi"
-        playsound_mapping(best_match['nominal'])
+        audio_file = playsound_mapping(best_match['nominal'])
 
 def playsound_mapping(nominal):
     try:
         nominal = int(nominal)
     except ValueError:
-        return
+        return None
 
     if 0 <= nominal <= 9:
         return 'sound/1000.mp3'
@@ -162,6 +156,8 @@ def main():
         st.image(image_test, channels="BGR")
         
         st.write(hasil)
+        if audio_file:
+            st.audio(audio_file, autoplay=True)
 
     st.markdown("""
         <style>
