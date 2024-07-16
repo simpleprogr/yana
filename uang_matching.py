@@ -21,11 +21,19 @@ def main():
     # Initialize video processor
     processor = ImageProcessor()
 
+    # Set media stream constraints to select rear camera
+    media_stream_constraints = {
+        "video": {
+            "facingMode": "environment"  # Use "environment" for rear camera
+        }
+    }
+
     # Display video stream from camera
     webrtc_ctx = webrtc_streamer(
         key="example",
         mode=WebRtcMode.SENDRECV,
         video_processor_factory=ImageProcessor,
+        media_stream_constraints=media_stream_constraints
     )
 
     # Button to capture image
