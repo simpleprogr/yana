@@ -2,7 +2,4 @@ streamlit
 opencv-python-headless
 numpy
 imutils
-playsound
-streamlit_webrtc
-tensorflow
-streamlit_image_capture
+streamlit-image-capture
