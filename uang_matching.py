@@ -4,7 +4,6 @@ import numpy as np
 import imutils
 import os
 from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoProcessorBase
-import av
 
 _capture, image_test = False, None
 template_data = []
@@ -111,7 +110,7 @@ class VideoProcessor(VideoProcessorBase):
         img = frame.to_ndarray(format="bgr24")
         self.frame = img
         detect(img)
-        return av.VideoFrame.from_ndarray(img, format="bgr24")
+        return VideoFrame.from_ndarray(img, format="bgr24")
 
     def save_image(self):
         if self.frame is not None:
