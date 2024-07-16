@@ -1,9 +1,9 @@
 import streamlit as st
-import glob
 import cv2
 import numpy as np
 import imutils
 import os
+import glob
 from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoProcessorBase
 import av
 
@@ -13,8 +13,6 @@ hasil = ''
 audio_file = ''
 
 # Initialize session state for camera control
-if 'camera_active' not in st.session_state:
-    st.session_state.camera_active = False
 if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
 
