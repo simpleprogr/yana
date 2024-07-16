@@ -10,11 +10,8 @@ class ImageProcessor(VideoProcessorBase):
 
     def recv(self, frame):
         if self._capture_image:
-            # Convert frame to BGR format
             img = frame.to_ndarray(format="bgr24")
-            # Save the captured image data
             self._image_data = img
-            # Reset capture flag
             self._capture_image = False
         return frame
 
@@ -25,7 +22,11 @@ def main():
     processor = ImageProcessor()
 
     # Display video stream from camera
-    webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, video_processor_factory=processor)
+    webrtc_ctx = webrtc_streamer(
+        key="example",
+        mode=WebRtcMode.SENDRECV,
+        video_processor_factory=ImageProcessor,
+    )
 
     # Button to capture image
     if st.button("Capture Image"):
