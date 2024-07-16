@@ -1,19 +1,17 @@
 import streamlit as st
-import glob
 import cv2
 import numpy as np
 import imutils
-from io import BytesIO
-from PIL import Image
-import base64
+import os
+import glob
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoProcessorBase
+import av
 
 _capture, image_test = False, None
 template_data = []
 hasil = ''
 
 # Initialize session state for camera control
-if 'camera_active' not in st.session_state:
-    st.session_state.camera_active = False
 if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
 
@@ -21,28 +19,28 @@ def get_currency_color(hue_value):
     if hue_value < 0:
         return "MATA UANG"
     elif hue_value < 10:
+        st.audio('sound/5000.mp3')
         return "Nominal Uang 5000"
     elif hue_value < 30:
+        st.audio('sound/1000.mp3')
         return "Nominal Uang 1000"
     elif hue_value < 75:
+        st.audio('sound/20000.mp3')
         return "Nominal Uang 20.000"
     elif hue_value < 102:
+        st.audio('sound/2000.mp3')
         return "Nominal Uang 2000"
     elif hue_value < 105:
-        return "Nominal Uang 50000"
+        st.audio('sound/50000.mp3')
+        return "Nominal Uang 50.000"
     elif hue_value < 160:
+        st.audio('sound/10000.mp3')
         return "Nominal Uang 10.000"
     elif hue_value < 177:
+        st.audio('sound/100000.mp3')
         return "Nominal Uang 100.000"
     else:
         return "MATA UANG"
-
-def start_camera():
-    st.session_state.camera_active = True
-    st.session_state.currency_detected = False
-
-def stop_camera():
-    st.session_state.camera_active = False
 
 def uang_matching():
     global template_data
@@ -84,11 +82,37 @@ def detect(img):
         endX, endY = int((best_match["location"][0] + tmp_width) * best_match["scale"]), int((best_match["location"][1] + tmp_height) * best_match["scale"])
         cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
         hasil = f"Template : {best_match['nominal']} dideteksi"
+        playsound_mapping(int(best_match['nominal']))
+
+def playsound_mapping(nominal):
+    if 0 <= nominal <= 9:
+        st.audio('sound/1000.mp3')
+    elif 8 <= nominal <= 21:
+        st.audio('sound/2000.mp3')
+    elif 20 <= nominal <= 34:
+        st.audio('sound/5000.mp3')
+    elif 33 <= nominal <= 48:
+        st.audio('sound/10000.mp3')
+    elif 47 <= nominal <= 57:
+        st.audio('sound/20000.mp3')
+    elif 56 <= nominal <= 69:
+        st.audio('sound/50000.mp3')
+    elif 68 <= nominal <= 84:
+        st.audio('sound/100000.mp3')
+
+class VideoProcessor(VideoProcessorBase):
+    def __init__(self):
+        self.template_data = []
+        uang_matching()
+
+    def recv(self, frame):
+        img = frame.to_ndarray(format="bgr24")
+        detect(img)
+        return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 def main():
     st.set_page_config(page_title="Deteksi Nominal Mata Uang Menggunakan Template Matching", layout="centered")
 
-    # Inject custom CSS for background color
     st.markdown(
         """
         <style>
@@ -100,13 +124,12 @@ def main():
         unsafe_allow_html=True
     )
 
-    # Custom CSS for title
     st.markdown("""
         <style>
         .title {
             text-align: center;
-            font-size: 24px; /* Ukuran font */
-            color: #FF5733; /* Warna teks */
+            font-size: 24px;
+            color: #FF5733;
             margin-bottom: 36px;
         }
         </style>
@@ -118,69 +141,21 @@ def main():
 
     st.write("---")
 
-    col1, col2, col3 = st.columns([1, 4, 1])
+    webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, 
+                    video_processor_factory=VideoProcessor, 
+                    media_stream_constraints={"video": True, "audio": False})
 
-    with col2:
-        start_button = st.button("Start Camera", on_click=start_camera, use_container_width=True)
-        stop_button = st.button("Stop Camera", on_click=stop_camera, use_container_width=True)
-        capture_button = st.button("Capture Image", use_container_width=True)
-
-        stframe = st.empty()
-
-        cap = cv2.VideoCapture(0)
-        if not cap.isOpened():
-            st.error("Failed to open camera. Please check if the camera is connected and accessible.")
-            return
-
-        while st.session_state.camera_active:
-            ret, frame = cap.read()
-            if not ret:
-                st.error("Failed to capture image.")
-                break
-
-            stframe.image(frame, channels="BGR")
-
-            if capture_button:
-                hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-                height, width, _ = frame.shape
-
-                cx = int(width / 2)
-                cy = int(height / 2)
-
-                pixel_center = hsv_frame[cy, cx]
-                hue_value = pixel_center[0]
-
-                color = get_currency_color(hue_value)
-
-                pixel_center_bgr = frame[cy, cx]
-                b, g, r = int(pixel_center_bgr[0]), int(pixel_center_bgr[1]), int(pixel_center_bgr[2])
-
-                cv2.circle(frame, (cx, cy), 5, (25, 25, 25), 3)
-
-                stframe.image(frame, channels="BGR")
-                st.write(f"Hasil Deteksi : {color}")
-
-                st.session_state.currency_detected = True
-                st.session_state.camera_active = False
-
-        if not st.session_state.camera_active:
-            cap.release()
-            cv2.destroyAllWindows()
+    uploaded_file = st.file_uploader("", type=["jpg", "png"])
     
-    col1, col2, col3 = st.columns([1, 4, 1])
-
-    with col2:
-        uploaded_file = st.file_uploader("", type=["jpg", "png"])
-    
-        if uploaded_file is not None:
-            file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-            image_test = cv2.imdecode(file_bytes, 1)
-            
-            detect(image_test)
-            
-            st.image(image_test, channels="BGR")
-            
-            st.write(hasil)
+    if uploaded_file is not None:
+        file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+        image_test = cv2.imdecode(file_bytes, 1)
+        
+        detect(image_test)
+        
+        st.image(image_test, channels="BGR")
+        
+        st.write(hasil)
 
     st.markdown("""
         <style>
