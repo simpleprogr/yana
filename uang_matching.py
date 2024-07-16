@@ -71,31 +71,29 @@ def uang_matching():
 
 def detect(img):     
     global template_data, hasil
+    best_match = {"value": 0, "nominal": None, "location": None, "scale": 1}
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img_canny = cv2.Canny(img_gray, 50, 200)
+    
     for template in template_data:
-        (tmp_height, tmp_width) = template['glob'].shape[:2]
-        image_test_p = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        image_test_p = cv2.Canny(image_test_p, 50, 200)
-        found = None
-        thershold = 0.4
+        tmp_height, tmp_width = template['glob'].shape[:2]
         for scale in np.linspace(0.2, 1.0, 20)[::-1]: 
-            resized = imutils.resize(image_test_p, width=int(image_test_p.shape[1] * scale))
-            r = image_test_p.shape[1] / float(resized.shape[1]) 
+            resized = imutils.resize(img_canny, width=int(img_canny.shape[1] * scale))
+            r = img_canny.shape[1] / float(resized.shape[1]) 
             if resized.shape[0] < tmp_height or resized.shape[1] < tmp_width:
                 break
 
             result = cv2.matchTemplate(resized, template['glob'], cv2.TM_CCOEFF_NORMED)
-            (_, maxVal, _, maxLoc) = cv2.minMaxLoc(result)
-            if found is None or maxVal > found[0]:
-                found = (maxVal, maxLoc, r)
-                if maxVal >= thershold: 
-                    hasil = f"Template : {template['nominal']} dideteksi"
-        if found is not None: 
-            (maxVal, maxLoc, r) = found
-            (startX, startY) = (int(maxLoc[0]*r), int(maxLoc[1] * r))
-            (endX, endY) = (int((maxLoc[0] + tmp_width) * r), int((maxLoc[1] + tmp_height) * r))
-            if maxVal >= thershold:
-                cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
-                playsound_mapping(int(template['nominal']))
+            _, maxVal, _, maxLoc = cv2.minMaxLoc(result)
+            if maxVal > best_match["value"]:
+                best_match.update({"value": maxVal, "nominal": template['nominal'], "location": maxLoc, "scale": r})
+    
+    if best_match["value"] >= 0.4:
+        startX, startY = int(best_match["location"][0] * best_match["scale"]), int(best_match["location"][1] * best_match["scale"])
+        endX, endY = int((best_match["location"][0] + tmp_width) * best_match["scale"]), int((best_match["location"][1] + tmp_height) * best_match["scale"])
+        cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
+        hasil = f"Template : {best_match['nominal']} dideteksi"
+        playsound_mapping(int(best_match['nominal']))
 
 def playsound_mapping(nominal):
     sound_folder = os.path.join(os.path.dirname(__file__), 'sound')
@@ -144,7 +142,7 @@ def main():
         </style>
         """, unsafe_allow_html=True)
 
-        # Memasukkan teks ke dalam div dengan kelas centered-text
+    # Memasukkan teks ke dalam div dengan kelas centered-text
     st.markdown('<div class="title">DETEKSI NOMINAL MATA UANG MENGGUNAKAN TEMPLATE MATCHING</div>', unsafe_allow_html=True)    
     
     uang_matching()
@@ -161,49 +159,48 @@ def main():
 
         stframe = st.empty()
 
-    # Initialize camera
+        # Initialize camera
         cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            st.error("Failed to open camera. Please check if the camera is connected and accessible.")
+            return
 
-    # Set resolution
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 400)
-
-    while st.session_state.camera_active:
-        ret, frame = cap.read()
-        if not ret:
-            st.error("Failed to capture image.")
-            break
-
-        stframe.image(frame, channels="BGR")
-
-        if capture_button:
-            hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            height, width, _ = frame.shape
-
-            cx = int(width / 2)
-            cy = int(height / 2)
-
-            pixel_center = hsv_frame[cy, cx]
-            hue_value = pixel_center[0]
-
-            color = get_currency_color(hue_value)
-
-            pixel_center_bgr = frame[cy, cx]
-            b, g, r = int(pixel_center_bgr[0]), int(pixel_center_bgr[1]), int(pixel_center_bgr[2])
-
-            #cv2.rectangle(frame, (cx - 420, 120), (cx + 450, 20), (255, 255, 255), -1)
-            #cv2.putText(frame, color, (cx - 300, 50), 0, 3, (b, g, r), 5)
-            cv2.circle(frame, (cx, cy), 5, (25, 25, 25), 3)
+        while st.session_state.camera_active:
+            ret, frame = cap.read()
+            if not ret:
+                st.error("Failed to capture image.")
+                break
 
             stframe.image(frame, channels="BGR")
-            st.write(f"Hasil Deteksi : {color}")
 
-            st.session_state.currency_detected = True
-            st.session_state.camera_active = False
+            if capture_button:
+                hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+                height, width, _ = frame.shape
 
-    if not st.session_state.camera_active:
-        cap.release()
-        cv2.destroyAllWindows()
+                cx = int(width / 2)
+                cy = int(height / 2)
+
+                pixel_center = hsv_frame[cy, cx]
+                hue_value = pixel_center[0]
+
+                color = get_currency_color(hue_value)
+
+                pixel_center_bgr = frame[cy, cx]
+                b, g, r = int(pixel_center_bgr[0]), int(pixel_center_bgr[1]), int(pixel_center_bgr[2])
+
+                #cv2.rectangle(frame, (cx - 420, 120), (cx + 450, 20), (255, 255, 255), -1)
+                #cv2.putText(frame, color, (cx - 300, 50), 0, 3, (b, g, r), 5)
+                cv2.circle(frame, (cx, cy), 5, (25, 25, 25), 3)
+
+                stframe.image(frame, channels="BGR")
+                st.write(f"Hasil Deteksi : {color}")
+
+                st.session_state.currency_detected = True
+                st.session_state.camera_active = False
+
+        if not st.session_state.camera_active:
+            cap.release()
+            cv2.destroyAllWindows()
     
     col1, col2, col3 = st.columns([1, 4, 1])
 
