@@ -11,6 +11,10 @@ class VideoProcessor(VideoProcessorBase):
 
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
+
+        if img is None:
+            return frame
+
         hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         height, width, _ = img.shape
         
@@ -54,7 +58,7 @@ def main():
 
     webrtc_ctx = webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, video_processor_factory=VideoProcessor)
 
-    if webrtc_ctx.video_processor:
+    if webrtc_ctx.state.playing:
         st.write("Webcam is active. Please show the currency note to the camera.")
 
 if __name__ == "__main__":
