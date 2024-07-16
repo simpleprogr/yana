@@ -146,16 +146,17 @@ def main():
                     media_stream_constraints={"video": True, "audio": False})
 
    # Capture image from camera
-    picture = st.camera_input("Capture an image")
+    picture = st.camera_input("Ambil gambar")
+    
     if picture is not None:
         # Convert the image to OpenCV format (BGR)
-        frame = cv2.cvtColor(np.array(picture), cv2.COLOR_RGB2BGR)
-        
+        frame_bgr = cv2.cvtColor(np.array(picture), cv2.COLOR_RGB2BGR)
+
         # Convert to HSV for color detection
-        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
 
         # Get dimensions of the frame
-        height, width, _ = frame.shape
+        height, width, _ = frame_bgr.shape
 
         # Calculate center coordinates of the frame
         cx = int(width / 2)
@@ -169,12 +170,11 @@ def main():
         color = get_currency_color(hue_value)
 
         # Draw a circle at the center of the frame
-        cv2.circle(frame, (cx, cy), 5, (255, 255, 255), 2)
+        cv2.circle(frame_bgr, (cx, cy), 5, (255, 255, 255), 2)
 
         # Display the processed frame and detected color
-        st.image(frame, channels="BGR")
-        st.write(f"Detected Currency Color: {color}")
-
+        st.image(frame_bgr, channels="BGR")
+        st.write(f"Hasil Deteksi : {color}")
     
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
     
