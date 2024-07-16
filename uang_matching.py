@@ -64,7 +64,7 @@ def detect(img):
         for scale in np.linspace(0.2, 1.0, 20)[::-1]: 
             resized = imutils.resize(img_canny, width=int(img_canny.shape[1] * scale))
             r = img_canny.shape[1] / float(resized.shape[1]) 
-            if resized.shape[0] < tmp_height atau resized.shape[1] < tmp_width:
+            if resized.shape[0] < tmp_height or resized.shape[1] < tmp_width:
                 break
 
             result = cv2.matchTemplate(resized, template['glob'], cv2.TM_CCOEFF_NORMED)
@@ -104,12 +104,18 @@ def playsound_mapping(nominal):
 class VideoProcessor(VideoProcessorBase):
     def __init__(self):
         self.template_data = []
+        self.frame = None
         uang_matching()
 
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
+        self.frame = img
         detect(img)
         return av.VideoFrame.from_ndarray(img, format="bgr24")
+
+    def save_image(self):
+        if self.frame is not None:
+            cv2.imwrite("captured_image.jpg", self.frame)
 
 def main():
     st.set_page_config(page_title="Deteksi Nominal Mata Uang Menggunakan Template Matching", layout="centered")
