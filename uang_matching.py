@@ -148,17 +148,17 @@ def main():
     # Camera input to take a picture
     picture = st.camera_input("Take a picture")
     if picture is not None:
-        # Convert PIL image to numpy array
+        # Convert PIL image to numpy array (RGB format)
         frame = np.array(picture)
         
-        # Convert frame to BGR format (if necessary)
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        # Convert frame to BGR format for OpenCV processing
+        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         
         # Convert frame to HSV format for color detection
-        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
 
         # Get dimensions of the frame
-        height, width, _ = frame.shape
+        height, width, _ = frame_bgr.shape
 
         # Calculate center coordinates
         cx = int(width / 2)
@@ -172,10 +172,10 @@ def main():
         color = get_currency_color(hue_value)
 
         # Draw circle at the center of the frame
-        cv2.circle(frame, (cx, cy), 5, (25, 25, 25), 3)
+        cv2.circle(frame_bgr, (cx, cy), 5, (25, 25, 25), 3)
 
         # Display the processed frame and detected color
-        st.image(frame, channels="BGR")
+        st.image(frame_bgr, channels="BGR")
         st.write(f"Detected Currency Color: {color}")
 
     
