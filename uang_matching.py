@@ -91,19 +91,20 @@ def playsound_mapping(nominal):
         return
 
     if 0 <= nominal <= 9:
-        st.audio('sound/1000.mp3')
+        return 'sound/1000.mp3'
     elif 8 <= nominal <= 21:
-        st.audio('sound/2000.mp3')
+        return 'sound/2000.mp3'
     elif 20 <= nominal <= 34:
-        st.audio('sound/5000.mp3')
+        return 'sound/5000.mp3'
     elif 33 <= nominal <= 48:
-        st.audio('sound/10000.mp3')
+        return 'sound/10000.mp3'
     elif 47 <= nominal <= 57:
-        st.audio('sound/20000.mp3')
+        return 'sound/20000.mp3'
     elif 56 <= nominal <= 69:
-        st.audio('sound/50000.mp3')
+        return 'sound/50000.mp3'
     elif 68 <= nominal <= 84:
-        st.audio('sound/100000.mp3')
+        return 'sound/100000.mp3'
+    return None
 
 class VideoProcessor(VideoProcessorBase):
     def __init__(self):
