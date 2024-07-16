@@ -14,8 +14,6 @@ hasil = ''
 # Initialize session state for camera control
 if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
-if 'captured_frame' not in st.session_state:
-    st.session_state.captured_frame = None
 
 def get_currency_color(hue_value):
     if hue_value < 0:
@@ -84,8 +82,7 @@ def detect(img):
         endX, endY = int((best_match["location"][0] + tmp_width) * best_match["scale"]), int((best_match["location"][1] + tmp_height) * best_match["scale"])
         cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
         hasil = f"Template : {best_match['nominal']} dideteksi"
-        angka = int(best_match['nominal'])
-        playsound_mapping(angka)
+        playsound_mapping(int(best_match['nominal']))
 
 def playsound_mapping(nominal):
     if 0 <= nominal <= 9:
@@ -107,16 +104,11 @@ class VideoProcessor(VideoProcessorBase):
     def __init__(self):
         self.template_data = []
         uang_matching()
-        self.frame = None
 
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
-        self.frame = img.copy()
         detect(img)
         return av.VideoFrame.from_ndarray(img, format="bgr24")
-
-    def capture_frame(self):
-        return self.frame
 
 def main():
     st.set_page_config(page_title="Deteksi Nominal Mata Uang Menggunakan Template Matching", layout="centered")
@@ -149,34 +141,9 @@ def main():
 
     st.write("---")
 
-    webrtc_ctx = webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, 
+    webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, 
                     video_processor_factory=VideoProcessor, 
                     media_stream_constraints={"video": True, "audio": False})
-
-    capture_button = st.button("Capture Image")
-
-    if capture_button:
-        if webrtc_ctx.state.playing:
-            img = webrtc_ctx.video_processor.capture_frame()
-            if img is not None:
-                hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-                height, width, _ = img.shape
-
-                cx = int(width / 2)
-                cy = int(height / 2)
-
-                pixel_center = hsv_frame[cy, cx]
-                hue_value = pixel_center[0]
-
-                color = get_currency_color(hue_value)
-
-                cv2.circle(img, (cx, cy), 5, (25, 25, 25), 3)
-
-                st.image(img, channels="BGR")
-                st.write(f"Hasil Deteksi : {color}")
-
-                st.session_state.captured_frame = img
-                st.session_state.currency_detected = True
 
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
     
