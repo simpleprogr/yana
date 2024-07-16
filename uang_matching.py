@@ -145,38 +145,38 @@ def main():
                     video_processor_factory=VideoProcessor, 
                     media_stream_constraints={"video": True, "audio": False})
 
-    # Camera input to take a picture
-    picture = st.camera_input("Take a picture")
+    # Ambil gambar dari kamera
+    picture = st.camera_input("Ambil gambar")
     if picture is not None:
-        # Convert PIL image to numpy array (RGB format)
+        # Ubah gambar PIL ke array numpy (format RGB)
         frame = np.array(picture)
         
-        # Convert frame to BGR format for OpenCV processing
+        # Konversi frame ke format BGR untuk pemrosesan OpenCV
         frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         
-        # Convert frame to HSV format for color detection
+        # Konversi frame ke format HSV untuk deteksi warna
         hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
 
-        # Get dimensions of the frame
+        # Dapatkan dimensi dari frame
         height, width, _ = frame_bgr.shape
 
-        # Calculate center coordinates
+        # Hitung koordinat tengah frame
         cx = int(width / 2)
         cy = int(height / 2)
 
-        # Get hue value of the center pixel
+        # Dapatkan nilai hue dari piksel tengah
         pixel_center = hsv_frame[cy, cx]
         hue_value = pixel_center[0]
 
-        # Determine currency color based on hue value
+        # Tentukan warna mata uang berdasarkan nilai hue
         color = get_currency_color(hue_value)
 
-        # Draw circle at the center of the frame
+        # Gambar lingkaran di tengah frame
         cv2.circle(frame_bgr, (cx, cy), 5, (25, 25, 25), 3)
 
-        # Display the processed frame and detected color
+        # Tampilkan frame yang sudah diproses dan warna yang terdeteksi
         st.image(frame_bgr, channels="BGR")
-        st.write(f"Detected Currency Color: {color}")
+        st.write(f"Warna Mata Uang Terdeteksi: {color}")
 
     
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
