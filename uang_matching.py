@@ -145,33 +145,38 @@ def main():
                     video_processor_factory=VideoProcessor, 
                     media_stream_constraints={"video": True, "audio": False})
 
-    stframe = st.empty()
+    # Camera input to take a picture
     picture = st.camera_input("Take a picture")
-    if picture:
-        #st.image(picture)
-        #frame = cap.read()
-        stframe.image(picture, channels="BGR")
+    if picture is not None:
+        # Convert PIL image to numpy array
+        frame = np.array(picture)
+        
+        # Convert frame to BGR format (if necessary)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        
+        # Convert frame to HSV format for color detection
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        hsv_frame = cv2.cvtColor(picture, cv2.COLOR_BGR2HSV)
-        height, width, _ = picture.shape
+        # Get dimensions of the frame
+        height, width, _ = frame.shape
 
+        # Calculate center coordinates
         cx = int(width / 2)
         cy = int(height / 2)
 
+        # Get hue value of the center pixel
         pixel_center = hsv_frame[cy, cx]
         hue_value = pixel_center[0]
 
+        # Determine currency color based on hue value
         color = get_currency_color(hue_value)
 
-        pixel_center_bgr = picture[cy, cx]
-        b, g, r = int(pixel_center_bgr[0]), int(pixel_center_bgr[1]), int(pixel_center_bgr[2])
+        # Draw circle at the center of the frame
+        cv2.circle(frame, (cx, cy), 5, (25, 25, 25), 3)
 
-                #cv2.rectangle(frame, (cx - 420, 120), (cx + 450, 20), (255, 255, 255), -1)
-                #cv2.putText(frame, color, (cx - 300, 50), 0, 3, (b, g, r), 5)
-        cv2.circle(picture, (cx, cy), 5, (25, 25, 25), 3)
-
-        stframe.image(picture, channels="BGR")
-        st.write(f"Hasil Deteksi : {color}")
+        # Display the processed frame and detected color
+        st.image(frame, channels="BGR")
+        st.write(f"Detected Currency Color: {color}")
 
     
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
