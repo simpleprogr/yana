@@ -152,6 +152,16 @@ def main():
         # Convert the image to OpenCV format (RGB)
         frame_rgb = np.array(picture)
 
+        # Check if the frame has 2 dimensions (height, width)
+        if len(frame_rgb.shape) < 2:
+            st.error("Gambar tidak valid. Harap coba lagi.")
+            return
+
+        # Check if the frame has 3 dimensions (height, width, channels)
+        if len(frame_rgb.shape) == 3 and frame_rgb.shape[2] == 4:
+            # Convert RGBA to RGB
+            frame_rgb = frame_rgb[:, :, :3]
+
         # Mirror the frame horizontally
         frame_rgb = np.fliplr(frame_rgb)
 
