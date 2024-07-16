@@ -55,7 +55,7 @@ def uang_matching():
         tmp = cv2.filter2D(tmp, -1, kernel)
         tmp = cv2.blur(tmp, (3, 3)) 
         tmp = cv2.Canny(tmp, 50, 200)
-        nominal = template_file.replace('template\\', '').replace('.jpg', '')
+        nominal = os.path.basename(template_file).replace('.jpg', '')
         template_data.append({"glob": tmp, "nominal": nominal})
 
 def detect(img):     
@@ -82,9 +82,14 @@ def detect(img):
         endX, endY = int((best_match["location"][0] + tmp_width) * best_match["scale"]), int((best_match["location"][1] + tmp_height) * best_match["scale"])
         cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
         hasil = f"Template : {best_match['nominal']} dideteksi"
-        playsound_mapping(int(best_match['nominal']))
+        playsound_mapping(best_match['nominal'])
 
 def playsound_mapping(nominal):
+    try:
+        nominal = int(nominal)
+    except ValueError:
+        return
+
     if 0 <= nominal <= 9:
         st.audio('sound/1000.mp3')
     elif 8 <= nominal <= 21:
