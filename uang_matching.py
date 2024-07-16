@@ -149,8 +149,14 @@ def main():
     picture = st.camera_input("Ambil gambar")
     
     if picture is not None:
-        # Convert the image to BGR using slicing method
-        frame_bgr = np.array(picture)[:, :, ::-1]
+        # Convert the image to OpenCV format (RGB)
+        frame_rgb = np.array(picture)
+
+        # Mirror the frame horizontally
+        frame_rgb = np.fliplr(frame_rgb)
+
+        # Convert to BGR format for OpenCV operations
+        frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
 
         # Convert to HSV for color detection
         hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
