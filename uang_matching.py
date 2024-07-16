@@ -82,22 +82,22 @@ def detect(img):
         endX, endY = int((best_match["location"][0] + tmp_width) * best_match["scale"]), int((best_match["location"][1] + tmp_height) * best_match["scale"])
         cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
         hasil = f"Template : {best_match['nominal']} dideteksi"
-        playsound_mapping(int(best_match['nominal']))
+        playsound_mapping()
 
-def playsound_mapping(nominal):
-    if 0 <= nominal <= 9:
+def playsound_mapping():
+    if 0 <= int(best_match['nominal'] <= 9:
         st.audio('sound/1000.mp3')
-    elif 8 <= nominal <= 21:
+    elif 8 <= int(best_match['nominal'] <= 21:
         st.audio('sound/2000.mp3')
-    elif 20 <= nominal <= 34:
+    elif 20 <= int(best_match['nominal'] <= 34:
         st.audio('sound/5000.mp3')
-    elif 33 <= nominal <= 48:
+    elif 33 <= int(best_match['nominal'] <= 48:
         st.audio('sound/10000.mp3')
-    elif 47 <= nominal <= 57:
+    elif 47 <= int(best_match['nominal'] <= 57:
         st.audio('sound/20000.mp3')
-    elif 56 <= nominal <= 69:
+    elif 56 <= int(best_match['nominal'] <= 69:
         st.audio('sound/50000.mp3')
-    elif 68 <= nominal <= 84:
+    elif 68 <= int(best_match['nominal'] <= 84:
         st.audio('sound/100000.mp3')
 
 class VideoProcessor(VideoProcessorBase):
