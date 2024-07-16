@@ -24,19 +24,19 @@ class VideoProcessor(VideoProcessorBase):
         if hue_value < 0:
             color = "MATA UANG"
         elif hue_value < 10:
-            color = "5000 -> $0.33"
+            color = "5000"
         elif hue_value < 30:
-            color = "1000 -> $0.067"
+            color = "1000"
         elif hue_value < 75:
-            color = "20.000 -> $1.33"
+            color = "20.000"
         elif hue_value < 102:
-            color = "2000 -> $0.13"
+            color = "2000"
         elif hue_value < 105:
-            color = "50.000 -> $3.34"
+            color = "50.000"
         elif hue_value < 160:
-            color = "10.000 -> $0.67"
+            color = "10.000"
         elif hue_value < 177:
-            color = "100.000 -> $6.67"
+            color = "100.000"
         else:
             color = "MATA UANG"
         
@@ -50,7 +50,7 @@ class VideoProcessor(VideoProcessorBase):
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 def main():
-    st.title("Deteksi Nominal Mata Uang Menggunakan Warna")
+    st.title("Deteksi Nominal Mata Uang")
 
     webrtc_ctx = webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, video_processor_factory=VideoProcessor)
 
