@@ -145,54 +145,41 @@ def main():
                     video_processor_factory=VideoProcessor, 
                     media_stream_constraints={"video": True, "audio": False})
 
-   # Capture image from camera
+    # Capture image from camera
     picture = st.camera_input("Ambil gambar")
-    
-    if st.button("Proses Gambar"):
-        if picture is not None:
-            # Convert the image to OpenCV format (RGB)
-            frame_rgb = np.array(picture)
 
-            # Check if the frame has 2 dimensions (height, width)
-            if len(frame_rgb.shape) < 2:
-                st.error("Gambar tidak valid. Harap coba lagi.")
-                return
+    if picture is not None:
+        frame_rgb = np.array(picture)
 
-            # Check if the frame has 3 dimensions (height, width, channels)
-            if len(frame_rgb.shape) == 3 and frame_rgb.shape[2] == 4:
-                # Convert RGBA to RGB
-                frame_rgb = frame_rgb[:, :, :3]
+        if len(frame_rgb.shape) < 2:
+            st.error("Gambar tidak valid. Harap coba lagi.")
+            return
 
-            # Mirror the frame horizontally
-            frame_rgb = np.fliplr(frame_rgb)
+        if len(frame_rgb.shape) == 3 and frame_rgb.shape[2] == 4:
+            frame_rgb = frame_rgb[:, :, :3]
 
-            # Convert to BGR format for OpenCV operations
-            frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+        frame_rgb = np.fliplr(frame_rgb)
 
-            # Convert to HSV for color detection
+        frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+
+        st.image(frame_bgr, channels="BGR")
+
+        if st.button("Proses Gambar"):
             hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
-
-            # Get dimensions of the frame
             height, width, _ = frame_bgr.shape
-
-            # Calculate center coordinates of the frame
             cx = int(width / 2)
             cy = int(height / 2)
-
-            # Get the HSV value of the center pixel
             pixel_center = hsv_frame[cy, cx]
             hue_value = pixel_center[0]
+            color, sound_path = get_currency_color(hue_value)
 
-            # Determine currency color based on hue value
-            color = get_currency_color(hue_value)
-
-            # Draw a circle at the center of the frame
             cv2.circle(frame_bgr, (cx, cy), 5, (255, 255, 255), 2)
-
-            # Display the processed frame and detected color
             st.image(frame_bgr, channels="BGR")
             st.write(f"Hasil Deteksi : {color}")
-    
+
+            if sound_path:
+                st.audio(sound_path, autoplay=True)
+
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
     
     if uploaded_file is not None:
