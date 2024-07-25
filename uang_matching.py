@@ -17,24 +17,31 @@ if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
 
 def get_currency_color(hue_value):
-    if hue_value < 0:
-        return "MATA UANG"
-    elif hue_value < 10:
-        return "Nominal Uang 5000", 'sound/5000.mp3'
-    elif hue_value < 30:
-        return "Nominal Uang 1000", 'sound/1000.mp3'
-    elif hue_value < 75:
-        return "Nominal Uang 20000", 'sound/20000.mp3'
-    elif hue_value < 102:
-        return "Nominal Uang 2000", 'sound/2000.mp3'
-    elif hue_value < 105:
-        return "Nominal Uang 50000", 'sound/50000.mp3'
-    elif hue_value < 160:
+    hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    height, width, _ = img.shape
+
+    cx = int(width / 2)
+    cy = int(height / 2)
+
+    pixel_center = hsv_frame[cy, cx]
+    hue_value = pixel_center[0]
+    
+    if hue_value < 10 or hue_value > 160:
         return "Nominal Uang 10000", 'sound/10000.mp3'
-    elif hue_value < 177:
+    elif 10 <= hue_value < 30:
+        return "Nominal Uang 1000", 'sound/1000.mp3'
+    elif 30 <= hue_value < 50:
+        return "Nominal Uang 2000", 'sound/2000.mp3'
+    elif 50 <= hue_value < 70:
+        return "Nominal Uang 5000", 'sound/5000.mp3'
+    elif 70 <= hue_value < 90:
+        return "Nominal Uang 20000", 'sound/20000.mp3'
+    elif 90 <= hue_value < 110:
+        return "Nominal Uang 50000", 'sound/50000.mp3'
+    elif 110 <= hue_value < 130:
         return "Nominal Uang 100000", 'sound/100000.mp3'
     else:
-        return "MATA UANG", None
+        return "Tidak Teridentifikasi"
 
 def uang_matching():
     global template_data
@@ -164,6 +171,8 @@ def main():
 
                 # Mengubah gambar ke format BGR
                 img_bgr = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+                
+                detected_nominal = get_currency_color(img_bgr)
 
                 # Menampilkan informasi tambahan
                 st.write("Informasi tambahan:")
@@ -171,30 +180,7 @@ def main():
 
                 # Mengirim gambar ke frame baru dengan channel BGR
                 st.image(img_bgr, channels="RGB")
-
-                # Convert to HSV for color detection
-                hsv_frame = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
-
-                # Get dimensions of the frame
-                height, width, _ = img_bgr.shape
-
-                # Calculate center coordinates of the frame
-                cx = int(width / 2)
-                cy = int(height / 2)
-
-                # Get the HSV value of the center pixel
-                pixel_center = hsv_frame[cy, cx]
-                hue_value = pixel_center[0]
-
-                # Determine currency color based on hue value
-                color = get_currency_color(hue_value)
-    
-                # Draw a circle at the center of the frame
-                cv2.circle(frame_bgr, (cx, cy), 5, (255, 255, 255), 2)
-
-                # Display the processed frame and detected color
-                st.image(img_bgr, channels="BGR")
-                st.write(f"Hasil Deteksi : {color}")
+                st.write(f"Hasil Deteksi: {detected_nominal}")                
 
    # Capture image from camera
     picture = st.camera_input("Ambil gambar")
