@@ -1,40 +1,54 @@
 import streamlit as st
+import glob
 import cv2
 import numpy as np
 import imutils
+from playsound import playsound
 import os
-import glob
-from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoProcessorBase
-import av
 
 _capture, image_test = False, None
 template_data = []
 hasil = ''
-audio_file = ''
 
 # Initialize session state for camera control
+if 'camera_active' not in st.session_state:
+    st.session_state.camera_active = False
 if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
 
-def get_currency_color(hue_value):
-    if hue_value < 0:
-        return "MATA UANG"
-    elif hue_value < 10:
-        return "Nominal Uang 5000", 'sound/5000.mp3'
-    elif hue_value < 30:
-        return "Nominal Uang 1000", 'sound/1000.mp3'
-    elif hue_value < 75:
-        return "Nominal Uang 20000", 'sound/20000.mp3'
-    elif hue_value < 102:
-        return "Nominal Uang 2000", 'sound/2000.mp3'
-    elif hue_value < 105:
-        return "Nominal Uang 50000", 'sound/50000.mp3'
-    elif hue_value < 160:
-        return "Nominal Uang 10000", 'sound/10000.mp3'
-    elif hue_value < 177:
-        return "Nominal Uang 100000", 'sound/100000.mp3'
+def detect_by_color(img):
+    hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    height, width, _ = img.shape
+
+    cx = int(width / 2)
+    cy = int(height / 2)
+
+    pixel_center = hsv_frame[cy, cx]
+    hue_value = pixel_center[0]
+
+    if hue_value < 10 or hue_value > 160:
+        playsound('sound/10000.mp3')
+        return "Nominal Uang 10000"
+    elif 10 <= hue_value < 30:
+        playsound('sound/1000.mp3')
+        return "Nominal Uang 1000"
+    elif 30 <= hue_value < 50:
+        playsound('sound/2000.mp3')
+        return "Nominal Uang 2000"
+    elif 50 <= hue_value < 70:
+        playsound('sound/5000.mp3')
+        return "Nominal Uang 5000"
+    elif 70 <= hue_value < 90:
+        playsound('sound/20000.mp3')
+        return "Nominal Uang 20000"
+    elif 90 <= hue_value < 110:
+        playsound('sound/50000.mp3')
+        return "Nominal Uang 50000"
+    elif 110 <= hue_value < 130:
+        playsound('sound/100000.mp3')
+        return "Nominal Uang 100000"
     else:
-        return "MATA UANG", None
+        return "Tidak Teridentifikasi"
 
 def uang_matching():
     global template_data
@@ -49,11 +63,11 @@ def uang_matching():
         tmp = cv2.filter2D(tmp, -1, kernel)
         tmp = cv2.blur(tmp, (3, 3)) 
         tmp = cv2.Canny(tmp, 50, 200)
-        nominal = os.path.basename(template_file).replace('.jpg', '')
+        nominal = template_file.replace('template\\', '').replace('.jpg', '')
         template_data.append({"glob": tmp, "nominal": nominal})
 
 def detect(img):     
-    global template_data, hasil, audio_file
+    global template_data, hasil
     best_match = {"value": 0, "nominal": None, "location": None, "scale": 1}
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img_canny = cv2.Canny(img_gray, 50, 200)
@@ -76,43 +90,31 @@ def detect(img):
         endX, endY = int((best_match["location"][0] + tmp_width) * best_match["scale"]), int((best_match["location"][1] + tmp_height) * best_match["scale"])
         cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
         hasil = f"Template : {best_match['nominal']} dideteksi"
-        audio_file = playsound_mapping(best_match['nominal'])
+        playsound_mapping(int(best_match['nominal']))
+    else:
+        hasil = "Tidak dapat mendeteksi nominal dengan template matching"
 
 def playsound_mapping(nominal):
-    try:
-        nominal = int(nominal)
-    except ValueError:
-        return None
-
+    sound_folder = os.path.join(os.path.dirname(__file__), 'sound')
     if 0 <= nominal <= 9:
-        return 'sound/1000.mp3'
+        playsound(os.path.join(sound_folder, '1000.mp3'))
     elif 8 <= nominal <= 21:
-        return 'sound/2000.mp3'
+        playsound(os.path.join(sound_folder, '2000.mp3'))
     elif 20 <= nominal <= 34:
-        return 'sound/5000.mp3'
+        playsound(os.path.join(sound_folder, '5000.mp3'))
     elif 33 <= nominal <= 48:
-        return 'sound/10000.mp3'
+        playsound(os.path.join(sound_folder, '10000.mp3'))
     elif 47 <= nominal <= 57:
-        return 'sound/20000.mp3'
+        playsound(os.path.join(sound_folder, '20000.mp3'))
     elif 56 <= nominal <= 69:
-        return 'sound/50000.mp3'
+        playsound(os.path.join(sound_folder, '50000.mp3'))
     elif 68 <= nominal <= 84:
-        return 'sound/100000.mp3'
-    return None
-
-class VideoProcessor(VideoProcessorBase):
-    def __init__(self):
-        self.template_data = []
-        uang_matching()
-
-    def recv(self, frame):
-        img = frame.to_ndarray(format="bgr24")
-        detect(img)
-        return av.VideoFrame.from_ndarray(img, format="bgr24")
+        playsound(os.path.join(sound_folder, '100000.mp3'))
 
 def main():
     st.set_page_config(page_title="Deteksi Nominal Mata Uang Menggunakan Template Matching", layout="centered")
 
+    # Inject custom CSS for background color
     st.markdown(
         """
         <style>
@@ -124,96 +126,75 @@ def main():
         unsafe_allow_html=True
     )
 
+    # Menggunakan CSS dari Streamlit untuk mengatur teks di tengah
     st.markdown("""
         <style>
         .title {
             text-align: center;
-            font-size: 24px;
-            color: #FF5733;
+            font-size: 24px; /* Ukuran font */
+            color: #FF5733; /* Warna teks */
             margin-bottom: 36px;
         }
         </style>
         """, unsafe_allow_html=True)
 
+    # Memasukkan teks ke dalam div dengan kelas centered-text
     st.markdown('<div class="title">DETEKSI NOMINAL MATA UANG MENGGUNAKAN TEMPLATE MATCHING</div>', unsafe_allow_html=True)    
     
     uang_matching()
 
     st.write("---")
 
-    webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, 
-                    video_processor_factory=VideoProcessor, 
-                    media_stream_constraints={"video": True, "audio": False})
+    # Use columns to center the elements on the page
+    col1, col2, col3 = st.columns([1, 4, 1])
 
-   # Capture image from camera
-    picture = st.camera_input("Ambil gambar")
+    with col2:
+        start_button = st.button("Start Camera", on_click=lambda: st.session_state.update(camera_active=True), use_container_width=True)
+        stop_button = st.button("Stop Camera", on_click=lambda: st.session_state.update(camera_active=False), use_container_width=True)
+        capture_button = st.button("Capture Image", use_container_width=True)
+
+        stframe = st.empty()
+
+        # Initialize camera
+        camera_input = st.camera_input("Camera")
+
+
+    if camera_input:
+
+        img = camera_input.get_image()
+
+        st.image(img, channels="BGR")
+
+
+        # Detect the nominal value
+
+        nominal_value = detect_by_color(img)
+
+        st.write("Nominal Value:", nominal_value)
     
-    if st.button("Proses Gambar"):
-        if picture is not None:
-            # Convert the image to OpenCV format (RGB)
-            frame_rgb = np.array(picture)
+    col1, col2, col3 = st.columns([1, 4, 1])
 
-            # Check if the frame has 2 dimensions (height, width)
-            if len(frame_rgb.shape) < 2:
-                st.error("Gambar tidak valid. Harap coba lagi.")
-                return
-
-            # Check if the frame has 3 dimensions (height, width, channels)
-            if len(frame_rgb.shape) == 3 and frame_rgb.shape[2] == 4:
-                # Convert RGBA to RGB
-                frame_rgb = frame_rgb[:, :, :3]
-
-            # Mirror the frame horizontally
-            frame_rgb = np.fliplr(frame_rgb)
-
-            # Convert to BGR format for OpenCV operations
-            frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
-
-            # Convert to HSV for color detection
-            hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
-
-            # Get dimensions of the frame
-            height, width, _ = frame_bgr.shape
-
-            # Calculate center coordinates of the frame
-            cx = int(width / 2)
-            cy = int(height / 2)
-
-            # Get the HSV value of the center pixel
-            pixel_center = hsv_frame[cy, cx]
-            hue_value = pixel_center[0]
-
-            # Determine currency color based on hue value
-            color = get_currency_color(hue_value)
-
-            # Draw a circle at the center of the frame
-            cv2.circle(frame_bgr, (cx, cy), 5, (255, 255, 255), 2)
-
-            # Display the processed frame and detected color
-            st.image(frame_bgr, channels="BGR")
-            st.write(f"Hasil Deteksi : {color}")
+    with col2:
+        uploaded_file = st.file_uploader("", type=["jpg", "png"])
     
-    uploaded_file = st.file_uploader("", type=["jpg", "png"])
-    
-    if uploaded_file is not None:
-        file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-        image_test = cv2.imdecode(file_bytes, 1)
-        
-        detect(image_test)
-        
-        st.image(image_test, channels="BGR")
-        
-        st.write(hasil)
-        if audio_file:
-            st.audio(audio_file, autoplay=True)
+        if uploaded_file is not None:
+            file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+            image_test = cv2.imdecode(file_bytes, 1)
+            
+            detect(image_test)
+            
+            st.image(image_test, channels="BGR")
+            
+            st.write(hasil)
 
     st.markdown("""
-        <style>
+        <style>       
+
         .foother {
             text-align: center;
-            font-size: 16px;
-            color: #FF5733;
-            background-color: #F0F0F0;
+            font-size: 16px; /* Ukuran font */
+            color: #FF5733; /* Warna teks */
+            background-color: #F0F0F0; /* Warna latar belakang */
         }
         </style>
         """, unsafe_allow_html=True)
@@ -222,13 +203,14 @@ def main():
         <style>
         .foother2 {
             text-align: center;
-            font-size: 16px;
-            color: #FF5733;
+            font-size: 16px; /* Ukuran font */
+            color: #FF5733; /* Warna teks */
             margin-top: 36px;
         }
         </style>
         """, unsafe_allow_html=True)
 
+    # Memasukkan teks ke dalam div dengan kelas centered-text
     st.markdown('<div class="foother">Yana Wulandari</div><div class="foother">0701202073</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
