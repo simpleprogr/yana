@@ -156,10 +156,11 @@ def main():
         # Membuat tombol untuk menampilkan informasi tambahan
         with col2:
             if st.button("Tampilkan Informasi Tambahan"):
-               # Convert bytes object to numpy array
-                container = av.open(img_file_buffer)
-                frames = [frame for frame in container.decode_video()]
-                img_array = frames[0].to_ndarray(format="bgr24")
+               # Read bytes object from UploadedFile
+                bytes_data = img_file_buffer.getvalue()
+
+                # Read bytes object into numpy array
+                img_array = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
 
                 # Mengubah gambar ke format BGR
                 img_bgr = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
