@@ -141,11 +141,19 @@ def main():
 
     st.write("---")
 
+    webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, 
+                    video_processor_factory=VideoProcessor, 
+                    media_stream_constraints={"video": True, "audio": False})
+
     # Capture image from camera
     picture = st.camera_input("Ambil gambar")
 
     if picture is not None:
         frame_rgb = np.array(picture)
+
+        if len(frame_rgb.shape) == 2:
+            st.error("Gambar tidak valid. Harap coba lagi.")
+            return
 
         if len(frame_rgb.shape) == 3 and frame_rgb.shape[2] == 4:
             frame_rgb = frame_rgb[:, :, :3]
@@ -211,4 +219,4 @@ def main():
     st.markdown('<div class="foother">Yana Wulandari</div><div class="foother">0701202073</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    main()
+    main
