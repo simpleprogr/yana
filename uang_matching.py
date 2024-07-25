@@ -156,26 +156,20 @@ def main():
         # Membuat tombol untuk menampilkan informasi tambahan
         with col2:
             if st.button("Tampilkan Informasi Tambahan"):
-               # Read bytes object from UploadedFile
-                bytes_data = img_file_buffer.read()
+               # Convert bytes object to numpy array
+                container = av.open(img_file_buffer)
+                frames = [frame for frame in container.decode_video()]
+                img_array = frames[0].to_ndarray(format="bgr24")
 
-                # Read bytes object into PIL image
-                img_pil = Image.open(BytesIO(bytes_data))
-
-                # Convert PIL image to numpy array
-                img_array = np.array(img_pil)
-                
                 # Mengubah gambar ke format BGR
-                img_bgr = cv2.cvtColor(np.array(img_file_buffer), cv2.COLOR_RGB2BGR)
+                img_bgr = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
 
                 # Menampilkan informasi tambahan
                 st.write("Informasi tambahan:")
-                st.write("Tipe file:", img_file_buffer.type)
-                st.write("Ukuran file:", img_file_buffer.size)
                 st.write("Resolusi:", img_bgr.shape)
-    
+
                 # Mengirim gambar ke frame baru dengan channel BGR
-                st.image(img_bgr, channels="BGR")
+                st.image(img_bgr, channels="RGB")
 
    # Capture image from camera
     picture = st.camera_input("Ambil gambar")
