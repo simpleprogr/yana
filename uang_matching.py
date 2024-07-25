@@ -162,7 +162,7 @@ def main():
     
         # Membuat tombol untuk menampilkan informasi tambahan
         with col2:
-            if st.button("Tampilkan Informasi Tambahan"):
+            if st.button("Deteksi Nominal"):
                # Read bytes object from UploadedFile
                 bytes_data = img_file_buffer.getvalue()
 
@@ -175,60 +175,12 @@ def main():
                 detected_nominal = get_currency_color(img_bgr)
 
                 # Menampilkan informasi tambahan
-                st.write("Informasi tambahan:")
-                st.write("Resolusi:", img_bgr.shape)
+                #st.write("Informasi tambahan:")
+                #st.write("Resolusi:", img_bgr.shape)
 
                 # Mengirim gambar ke frame baru dengan channel BGR
                 st.image(img_bgr, channels="RGB")
-                st.write(f"Hasil Deteksi: {detected_nominal}")                
-
-   # Capture image from camera
-    picture = st.camera_input("Ambil gambar")
-    
-    if st.button("Proses Gambar"):
-        if picture is not None:
-            # Convert the image to OpenCV format (RGB)
-            frame_rgb = np.array(picture)
-
-            # Check if the frame has 2 dimensions (height, width)
-            if len(frame_rgb.shape) < 2:
-                st.error("Gambar tidak valid. Harap coba lagi.")
-                return
-
-            # Check if the frame has 3 dimensions (height, width, channels)
-            if len(frame_rgb.shape) == 3 and frame_rgb.shape[2] == 4:
-                # Convert RGBA to RGB
-                frame_rgb = frame_rgb[:, :, :3]
-
-            # Mirror the frame horizontally
-            frame_rgb = np.fliplr(frame_rgb)
-
-            # Convert to BGR format for OpenCV operations
-            frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
-
-            # Convert to HSV for color detection
-            hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
-
-            # Get dimensions of the frame
-            height, width, _ = frame_bgr.shape
-
-            # Calculate center coordinates of the frame
-            cx = int(width / 2)
-            cy = int(height / 2)
-
-            # Get the HSV value of the center pixel
-            pixel_center = hsv_frame[cy, cx]
-            hue_value = pixel_center[0]
-
-            # Determine currency color based on hue value
-            color = get_currency_color(hue_value)
-
-            # Draw a circle at the center of the frame
-            cv2.circle(frame_bgr, (cx, cy), 5, (255, 255, 255), 2)
-
-            # Display the processed frame and detected color
-            st.image(frame_bgr, channels="BGR")
-            st.write(f"Hasil Deteksi : {color}")
+                st.write(f"Hasil Deteksi: {detected_nominal}")
     
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
     
