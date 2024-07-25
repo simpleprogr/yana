@@ -172,6 +172,30 @@ def main():
                 # Mengirim gambar ke frame baru dengan channel BGR
                 st.image(img_bgr, channels="RGB")
 
+                # Convert to HSV for color detection
+                hsv_frame = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+
+                # Get dimensions of the frame
+                height, width, _ = img_bgr.shape
+
+                # Calculate center coordinates of the frame
+                cx = int(width / 2)
+                cy = int(height / 2)
+
+                # Get the HSV value of the center pixel
+                pixel_center = hsv_frame[cy, cx]
+                hue_value = pixel_center[0]
+
+                # Determine currency color based on hue value
+                color = get_currency_color(hue_value)
+    
+                # Draw a circle at the center of the frame
+                cv2.circle(frame_bgr, (cx, cy), 5, (255, 255, 255), 2)
+
+                # Display the processed frame and detected color
+                st.image(img_bgr, channels="BGR")
+                st.write(f"Hasil Deteksi : {color}")
+
    # Capture image from camera
     picture = st.camera_input("Ambil gambar")
     
