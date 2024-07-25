@@ -41,7 +41,7 @@ def get_currency_color(img):
     elif 110 <= hue_value < 130:
         return "Nominal Uang 100000", 'sound/100000.mp3'
     else:
-        return "Tidak Teridentifikasi"
+        return "Tidak Teridentifikasi", None
 
 def uang_matching():
     global template_data
@@ -172,17 +172,13 @@ def main():
                 # Mengubah gambar ke format BGR
                 img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)                
                 
-                detected_nominal = get_currency_color(img_bgr)
+                detected_nominal, audio_path = get_currency_color(img_bgr)
 
                 # Menampilkan informasi tambahan
-                #st.write("Informasi tambahan:")
-                #st.write("Resolusi:", img_bgr.shape)
-
-                # Mengirim gambar ke frame baru dengan channel BGR
                 st.image(img_bgr, channels="RGB")
                 st.write(f"Hasil Deteksi: {detected_nominal}")
-                if audio_file:
-                    st.audio(audio_file, autoplay=True)
+                if audio_path:
+                    st.audio(audio_path, autoplay=True)
     
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
     
