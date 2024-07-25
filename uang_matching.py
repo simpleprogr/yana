@@ -16,33 +16,6 @@ audio_file = ''
 if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
 
-def get_currency_color(img):
-    hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    height, width, _ = img.shape
-
-    cx = int(width / 2)
-    cy = int(height / 2)
-
-    pixel_center = hsv_frame[cy, cx]
-    hue_value = pixel_center[0]
-    
-    if hue_value < 10 or hue_value > 160:
-        return "Nominal Uang 10000", 'sound/10000.mp3'
-    elif 10 <= hue_value < 30:
-        return "Nominal Uang 1000", 'sound/1000.mp3'
-    elif 30 <= hue_value < 50:
-        return "Nominal Uang 2000", 'sound/2000.mp3'
-    elif 50 <= hue_value < 70:
-        return "Nominal Uang 5000", 'sound/5000.mp3'
-    elif 70 <= hue_value < 90:
-        return "Nominal Uang 20000", 'sound/20000.mp3'
-    elif 90 <= hue_value < 110:
-        return "Nominal Uang 50000", 'sound/50000.mp3'
-    elif 110 <= hue_value < 130:
-        return "Nominal Uang 100000", 'sound/100000.mp3'
-    else:
-        return "Tidak Teridentifikasi", None
-
 def detect_by_color(img):
     hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     height, width, _ = img.shape
@@ -68,7 +41,7 @@ def detect_by_color(img):
     elif 110 <= hue_value < 130:
         return "Nominal Uang 100000", 'sound/100000.mp3'
     else:
-        return "Tidak Teridentifikasi"
+        return "Tidak Teridentifikasi", None
 
 def uang_matching():
     global template_data
@@ -77,7 +50,7 @@ def uang_matching():
     
     for template_file in template_files:
         tmp = cv2.imread(template_file)
-        tmp = imutils.resize(tmp, width=int(tmp.shape[1]*0.5))  
+        tmp = imutils.resize(tmp, width=int(tmp.shape[1] * 0.5))  
         tmp = cv2.cvtColor(tmp, cv2.COLOR_BGR2GRAY)  
         kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
         tmp = cv2.filter2D(tmp, -1, kernel)
