@@ -156,8 +156,11 @@ def main():
         # Membuat tombol untuk menampilkan informasi tambahan
         with col2:
             if st.button("Tampilkan Informasi Tambahan"):
+               # Read bytes object from UploadedFile
+                bytes_data = img_file_buffer.read()
+
                 # Read bytes object into PIL image
-                img_pil = Image.open(BytesIO(img_file_buffer.getvalue()))
+                img_pil = Image.open(BytesIO(bytes_data))
 
                 # Convert PIL image to numpy array
                 img_array = np.array(img_pil)
