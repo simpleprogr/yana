@@ -156,9 +156,11 @@ def main():
         # Membuat tombol untuk menampilkan informasi tambahan
         with col2:
             if st.button("Tampilkan Informasi Tambahan"):
-                # Decode bytes object into numpy array
-                img_array = np.frombuffer(img_file_buffer.getvalue(), np.uint8)
-                img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+                # Read bytes object into PIL image
+                img_pil = Image.open(BytesIO(img_file_buffer.getvalue()))
+
+                # Convert PIL image to numpy array
+                img_array = np.array(img_pil)
                 
                 # Mengubah gambar ke format BGR
                 img_bgr = cv2.cvtColor(np.array(img_file_buffer), cv2.COLOR_RGB2BGR)
