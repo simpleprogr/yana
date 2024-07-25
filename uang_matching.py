@@ -20,25 +20,35 @@ def detect_by_color(img):
     hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     height, width, _ = img.shape
 
-    cx = int(width / 2)
-    cy = int(height / 2)
+    # Define regions to sample colors from the center
+    regions = [
+        (int(height / 3), int(width / 3)),
+        (int(height / 3), int(2 * width / 3)),
+        (int(2 * height / 3), int(width / 3)),
+        (int(2 * height / 3), int(2 * width / 3)),
+        (int(height / 2), int(width / 2)),
+    ]
 
-    pixel_center = hsv_frame[cy, cx]
-    hue_value = pixel_center[0]
+    hue_values = []
+    for (y, x) in regions:
+        pixel_center = hsv_frame[y, x]
+        hue_values.append(pixel_center[0])
 
-    if hue_value < 10 or hue_value > 160:
+    avg_hue_value = np.mean(hue_values)
+
+    if avg_hue_value < 10 or avg_hue_value > 160:
         return "Nominal Uang 10000", 'sound/10000.mp3'
-    elif 10 <= hue_value < 30:
+    elif 10 <= avg_hue_value < 30:
         return "Nominal Uang 1000", 'sound/1000.mp3'
-    elif 30 <= hue_value < 50:
+    elif 30 <= avg_hue_value < 50:
         return "Nominal Uang 2000", 'sound/2000.mp3'
-    elif 50 <= hue_value < 70:
+    elif 50 <= avg_hue_value < 70:
         return "Nominal Uang 5000", 'sound/5000.mp3'
-    elif 70 <= hue_value < 90:
+    elif 70 <= avg_hue_value < 90:
         return "Nominal Uang 20000", 'sound/20000.mp3'
-    elif 90 <= hue_value < 110:
+    elif 90 <= avg_hue_value < 110:
         return "Nominal Uang 50000", 'sound/50000.mp3'
-    elif 110 <= hue_value < 130:
+    elif 110 <= avg_hue_value < 130:
         return "Nominal Uang 100000", 'sound/100000.mp3'
     else:
         return "Tidak Teridentifikasi", None
@@ -175,7 +185,7 @@ def main():
                 detected_nominal, audio_path = detect_by_color(img_bgr)
 
                 # Menampilkan informasi tambahan
-                st.image(img_bgr, channels="RGB")
+                #st.image(img_bgr, channels="RGB")
                 st.write(f"Hasil Deteksi: {detected_nominal}")
                 if audio_path:
                     st.audio(audio_path, autoplay=True)
