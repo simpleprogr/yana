@@ -16,7 +16,7 @@ audio_file = ''
 if 'currency_detected' not in st.session_state:
     st.session_state.currency_detected = False
 
-def get_currency_color(hue_value):
+def get_currency_color(img):
     hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     height, width, _ = img.shape
 
@@ -170,16 +170,16 @@ def main():
                 img_array = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
 
                 # Mengubah gambar ke format BGR
-                img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+                img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)                
                 
-                #detected_nominal = get_currency_color(img_bgr)
+                detected_nominal = get_currency_color(img_bgr)
 
                 # Menampilkan informasi tambahan
                 st.write("Informasi tambahan:")
                 st.write("Resolusi:", img_bgr.shape)
 
                 # Mengirim gambar ke frame baru dengan channel BGR
-                st.image(img_bgr, channels="BGR")
+                st.image(img_bgr, channels="RGB")
                 st.write(f"Hasil Deteksi: {detected_nominal}")                
 
    # Capture image from camera
