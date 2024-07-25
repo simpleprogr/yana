@@ -172,7 +172,7 @@ def main():
                 # Mengubah gambar ke format BGR
                 img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
                 
-                detected_nominal = get_currency_color(img_bgr)
+                #detected_nominal = get_currency_color(img_bgr)
 
                 # Menampilkan informasi tambahan
                 st.write("Informasi tambahan:")
