@@ -181,6 +181,8 @@ def main():
                 # Mengirim gambar ke frame baru dengan channel BGR
                 st.image(img_bgr, channels="RGB")
                 st.write(f"Hasil Deteksi: {detected_nominal}")
+                if audio_file:
+                    st.audio(audio_file, autoplay=True)
     
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
     
