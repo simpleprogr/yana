@@ -141,45 +141,81 @@ def main():
 
     st.write("---")
 
-    webrtc_streamer(key="example", mode=WebRtcMode.SENDRECV, 
-                    video_processor_factory=VideoProcessor, 
-                    media_stream_constraints={"video": True, "audio": False})
+    # Membuat input camera
+    img_file_buffer = st.camera_input("Ambil foto")
 
-    # Capture image from camera
+    # Membuat frame untuk menampilkan hasil
+    if img_file_buffer is not None:
+        # Membuat kolom untuk menampilkan hasil
+        col1, col2 = st.columns([2, 1])
+
+        # Menampilkan hasil dalam frame
+        with col1:
+            st.image(img_file_buffer)
+    
+        # Membuat tombol untuk menampilkan informasi tambahan
+        with col2:
+            if st.button("Tampilkan Informasi Tambahan"):
+                # Mengubah gambar ke format BGR
+                img_bgr = cv2.cvtColor(np.array(img_file_buffer), cv2.COLOR_RGB2BGR)
+
+                # Menampilkan informasi tambahan
+                st.write("Informasi tambahan:")
+                st.write("Tipe file:", img_file_buffer.type)
+                st.write("Ukuran file:", img_file_buffer.size)
+                st.write("Resolusi:", img_bgr.shape)
+    
+                # Mengirim gambar ke frame baru dengan channel BGR
+                st.image(img_bgr, channels="BGR")
+
+   # Capture image from camera
     picture = st.camera_input("Ambil gambar")
+    
+    if st.button("Proses Gambar"):
+        if picture is not None:
+            # Convert the image to OpenCV format (RGB)
+            frame_rgb = np.array(picture)
 
-    if picture is not None:
-        frame_rgb = np.array(picture)
+            # Check if the frame has 2 dimensions (height, width)
+            if len(frame_rgb.shape) < 2:
+                st.error("Gambar tidak valid. Harap coba lagi.")
+                return
 
-        if len(frame_rgb.shape) == 2:
-            st.error("Gambar tidak valid. Harap coba lagi.")
-            return
+            # Check if the frame has 3 dimensions (height, width, channels)
+            if len(frame_rgb.shape) == 3 and frame_rgb.shape[2] == 4:
+                # Convert RGBA to RGB
+                frame_rgb = frame_rgb[:, :, :3]
 
-        if len(frame_rgb.shape) == 3 and frame_rgb.shape[2] == 4:
-            frame_rgb = frame_rgb[:, :, :3]
+            # Mirror the frame horizontally
+            frame_rgb = np.fliplr(frame_rgb)
 
-        frame_rgb = np.fliplr(frame_rgb)
+            # Convert to BGR format for OpenCV operations
+            frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
 
-        frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
-
-        st.image(frame_bgr, channels="BGR")
-
-        if st.button("Proses Gambar"):
+            # Convert to HSV for color detection
             hsv_frame = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
+
+            # Get dimensions of the frame
             height, width, _ = frame_bgr.shape
+
+            # Calculate center coordinates of the frame
             cx = int(width / 2)
             cy = int(height / 2)
+
+            # Get the HSV value of the center pixel
             pixel_center = hsv_frame[cy, cx]
             hue_value = pixel_center[0]
-            color, sound_path = get_currency_color(hue_value)
 
+            # Determine currency color based on hue value
+            color = get_currency_color(hue_value)
+
+            # Draw a circle at the center of the frame
             cv2.circle(frame_bgr, (cx, cy), 5, (255, 255, 255), 2)
+
+            # Display the processed frame and detected color
             st.image(frame_bgr, channels="BGR")
             st.write(f"Hasil Deteksi : {color}")
-
-            if sound_path:
-                st.audio(sound_path, autoplay=True)
-
+    
     uploaded_file = st.file_uploader("", type=["jpg", "png"])
     
     if uploaded_file is not None:
@@ -219,4 +255,4 @@ def main():
     st.markdown('<div class="foother">Yana Wulandari</div><div class="foother">0701202073</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    main
+    main()
